@@ -1,8 +1,12 @@
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.util.Random;
 
-public class GameField extends JPanel {
+public class GameField extends JPanel implements ActionListener {
 
 	private final int SIZE = 320;
 	private final int DOT_SIZE = 16;
@@ -16,13 +20,14 @@ public class GameField extends JPanel {
 
 	private int appleXOne;
 	private int appleYOne;
-	private int appleXTwo;
-	private int appleYTwo;
-	private int appleXThree;
-	private int appleYThree;
 
 	private int dots;
 	private Timer timer;
+
+	private boolean left = false;
+	private boolean right = true;
+	private boolean up = false;
+	private boolean down = false;
 
 	private boolean inGame = true;
 
@@ -37,10 +42,6 @@ public class GameField extends JPanel {
 		Random random = new Random();
 		appleXOne = random.nextInt(20) * DOT_SIZE;
 		appleYOne = random.nextInt(20) * DOT_SIZE;
-		appleXTwo = random.nextInt(20) * DOT_SIZE;
-		appleYTwo = random.nextInt(20) * DOT_SIZE;
-		appleXThree = random.nextInt(20) * DOT_SIZE;
-		appleYThree = random.nextInt(20) * DOT_SIZE;
 	}
 
 	public void initGame() {
@@ -55,7 +56,7 @@ public class GameField extends JPanel {
 	}
 
 	public void checkEatApple() {
-		if ((x[0] == appleXOne && y[0] == appleYOne) || (x[0] == appleXTwo && y[0] == appleYTwo) || (x[0] == appleXThree && y[0] == appleYThree)) {
+		if ((x[0] == appleXOne && y[0] == appleYOne)) {
 			dots++;
 			createApple();
 		}
@@ -77,7 +78,7 @@ public class GameField extends JPanel {
 	}
 
 	public void checkCollision() {
-		for (int i = 0; i < dots; i++) {
+		for (int i = dots; i > 0; i--) {
 			if (x[0] == x[i] && y[0] == y[i]) {
 				inGame = false;
 			}
@@ -95,5 +96,66 @@ public class GameField extends JPanel {
 			y[0] = SIZE;
 	}
 
+	@Override
+	public void actionPerformed(ActionEvent actionEvent) {
+		if (inGame) {
+			checkEatApple();
+			checkCollision();
+			move();
+		}
+		repaint();
+	}
+
+	public GameField(){
+		setBackground(Color.BLACK);
+		loadImage();
+		initGame();
+		addKeyListener(new FieldKeyListener());
+		setFocusable(true);
+	}
+
+	public void move() {
+		for (int i = dots; i > 0; i--) {
+			x[i] = x[i - 1];
+			y[i] = y[i - 1];
+		}
+		if (left)
+			x[0] -= DOT_SIZE;
+		if (right)
+			x[0] += DOT_SIZE;
+		if (up)
+			y[0] -= DOT_SIZE;
+		if (down)
+			y[0] += DOT_SIZE;
+	}
+
+	class FieldKeyListener extends KeyAdapter {
+		@Override
+		public void keyPressed(KeyEvent keyEvent) {
+			super.keyPressed(keyEvent);
+			int key = keyEvent.getKeyCode();
+
+			if (key == KeyEvent.VK_LEFT && !right) {
+				left = true;
+				up = false;
+				down = false;
+			}
+			if (key == KeyEvent.VK_RIGHT && !left) {
+				right = true;
+				up = false;
+				down = false;
+			}
+			if (key == KeyEvent.VK_UP && !down) {
+				left = false;
+				right = false;
+				up = true;
+			}
+			if (key == KeyEvent.VK_DOWN && !up) {
+				left = false;
+				right = false;
+				down = true;
+			}
+		}
+	}
 
 }
